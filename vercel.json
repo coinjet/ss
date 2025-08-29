@@ -1,18 +1,12 @@
 {
-  "version": 2,
-  "public": true,
   "rewrites": [
     {
-      "source": "/go/:path*",
-      "destination": "/api/go/:path*"
-    },
-    {
       "source": "/api/shorten",
-      "destination": "/api/shorten"
+      "destination": "/functions/index.js"
     },
     {
-      "source": "/",
-      "destination": "/index.html"
+      "source": "/go/(.*)",
+      "destination": "/functions/index.js"
     }
   ]
 }
