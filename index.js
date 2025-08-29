@@ -6,18 +6,14 @@ const path = require('path');
 const app = express();
 app.use(express.json());
 
-// Lee las credenciales de la variable de entorno de Vercel
 const serviceAccount = JSON.parse(process.env.SERVICE_ACCOUNT);
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 });
 const db = admin.firestore();
 
-// Servir archivos estáticos desde la carpeta 'public'
-// Esto permite que index.html, shorten.html y style.css sean accesibles
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Endpoint de la API (para procesar el acortamiento)
 app.post('/api/shorten', async (req, res) => {
     const { longUrl } = req.body;
     if (!longUrl || !longUrl.startsWith('http')) {
@@ -38,7 +34,6 @@ app.post('/api/shorten', async (req, res) => {
     }
 });
 
-// Endpoint para redirigir desde la URL corta
 app.get('/go/:shortId', async (req, res) => {
     const { shortId } = req.params;
 
