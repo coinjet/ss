@@ -35,6 +35,7 @@
             const longUrl = longUrlInput.value;
 
             try {
+                // **Esta es la corrección clave:** la petición debe ir a /api/shorten
                 const response = await fetch('/api/shorten', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
