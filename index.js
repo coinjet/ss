@@ -57,3 +57,4 @@ app.get('/go/:shortId', async (req, res) => {
 });
 
 exports.app = require('firebase-functions').https.onRequest(app);
+
