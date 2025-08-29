@@ -7,12 +7,14 @@ app.use(express.json());
 
 // Lee las credenciales de la variable de entorno de Vercel
 const serviceAccount = JSON.parse(process.env.SERVICE_ACCOUNT);
+
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 });
+
 const db = admin.firestore();
 
-// Página principal (Público)
+// Ruta pública de bienvenida (para los curiosos)
 app.get('/', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -57,9 +59,8 @@ app.get('/', (req, res) => {
     `);
 });
 
-// Acortador Privado (Solo para ti)
+// Ruta privada de acortamiento (solo para ti)
 app.get('/shorten', (req, res) => {
-    // Se envía el HTML para el acortador
     res.send(`
         <!DOCTYPE html>
         <html lang="es">
@@ -122,21 +123,20 @@ app.get('/shorten', (req, res) => {
                 const shortUrlLink = document.getElementById('short-url');
                 const copyBtn = document.getElementById('copy-btn');
                 const errorMessageDiv = document.getElementById('error-message');
-        
+
                 urlForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     const longUrl = longUrlInput.value;
-        
+
                     try {
-                        // Cambia la ruta a la API correcta en tu servidor
                         const response = await fetch('/api/shorten', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ longUrl }),
                         });
-        
+
                         const data = await response.json();
-        
+
                         if (response.ok) {
                             shortUrlLink.href = data.shortUrl;
                             shortUrlLink.textContent = data.shortUrl;
@@ -153,7 +153,7 @@ app.get('/shorten', (req, res) => {
                         resultDiv.classList.add('hidden');
                     }
                 });
-        
+
                 copyBtn.addEventListener('click', () => {
                     navigator.clipboard.writeText(shortUrlLink.href).then(() => {
                         copyBtn.textContent = '¡Copiado!';
@@ -182,7 +182,6 @@ app.post('/api/shorten', async (req, res) => {
             longUrl: longUrl
         });
 
-        // Construir la URL corta usando el host de la petición
         const shortUrl = `${req.protocol}://${req.get('host')}/go/${shortId}`;
         res.status(200).json({ shortUrl });
     } catch (error) {
