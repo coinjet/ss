@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "public": true,
+  "rewrites": [
+    {
+      "source": "/go/:path*",
+      "destination": "/api/go/:path*"
+    },
+    {
+      "source": "/api/shorten",
+      "destination": "/api/shorten"
+    },
+    {
+      "source": "/",
+      "destination": "/index.html"
+    }
+  ]
+}
