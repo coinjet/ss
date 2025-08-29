@@ -18,75 +18,88 @@
   </div>
 
   <script>
-    fetch('/api/config')
-      .then(r => r.json())
-      .then(config => {
-        window.firebaseConfig = config.firebase;
-        executeApp();
-      })
-      .catch(err => {
-        console.error("No se pudo cargar la configuración", err);
-      });
+    // === CONFIGURACIÓN DE FIREBASE (NO TOQUES ESTA LÍNEA) ===
+    const firebaseConfig = {
+  apiKey: "AIzaSyDOzxVtpvKDdQ9j3eMM9xy2Yl4zgwYewEA",
+  authDomain: "acortador-personal-mio.firebaseapp.com",
+  projectId: "acortador-personal-mio",
+  storageBucket: "acortador-personal-mio.firebasestorage.app",
+  messagingSenderId: "832752841766",
+  appId: "1:832752841766:web:c245e2c0df90e01e5ee2e7"
+};
+    // === FIN DE CONFIGURACIÓN ===
 
-    function executeApp() {
-      import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js').then(({ initializeApp }) => {
-        import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js').then(({ getFirestore, collection, addDoc, doc, getDoc }) => {
-          const app = initializeApp(window.firebaseConfig);
-          const db = getFirestore(app);
+    // Validación básica
+    if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+      document.getElementById('result').innerHTML = '<p class="error">Error: Firebase no configurado.</p>';
+      throw new Error('Falta configuración de Firebase');
+    }
 
-          function generateShortId() {
-            return Math.random().toString(36).substring(2, 8);
-          }
+    // Cargar Firebase
+    import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js')
+      .then(({ initializeApp }) => {
+        const app = initializeApp(firebaseConfig);
+        return import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js')
+          .then(({ getFirestore, collection, addDoc, doc, getDoc }) => {
+            const db = getFirestore(app);
 
-          document.getElementById('shortenBtn').addEventListener('click', async () => {
-            const longUrl = document.getElementById('longUrl').value.trim();
-            const resultDiv = document.getElementById('result');
-
-            if (!longUrl) {
-              resultDiv.innerHTML = '<p class="error">Por favor ingresa una URL válida.</p>';
-              return;
+            function generateShortId() {
+              return Math.random().toString(36).substring(2, 8);
             }
 
-            try {
-              new URL(longUrl);
-            } catch (e) {
-              resultDiv.innerHTML = '<p class="error">URL inválida. Debe incluir http:// o https://</p>';
-              return;
-            }
+            document.getElementById('shortenBtn').addEventListener('click', async () => {
+              const longUrl = document.getElementById('longUrl').value.trim();
+              const resultDiv = document.getElementById('result');
 
-            const shortId = generateShortId();
-            const shortUrl = `${window.location.origin}/${shortId}`;
+              if (!longUrl) {
+                resultDiv.innerHTML = '<p class="error">Por favor ingresa una URL válida.</p>';
+                return;
+              }
 
-            try {
-              await addDoc(collection(db, 'urls'), {
-                id: shortId,
-                longUrl: longUrl,
-                createdAt: new Date()
-              });
-              resultDiv.innerHTML = `
-                <p>URL acortada:</p>
-                <input type="text" value="${shortUrl}" readonly onclick="this.select()" />
-                <button onclick="navigator.clipboard.writeText('${shortUrl}').then(() => alert('Copiado!'))">Copiar</button>
-              `;
-            } catch (error) {
-              console.error("Error:", error);
-              resultDiv.innerHTML = '<p class="error">Error al acortar. Revisa consola.</p>';
+              try {
+                new URL(longUrl);
+              } catch (e) {
+                resultDiv.innerHTML = '<p class="error">URL inválida. Usa http:// o https://</p>';
+                return;
+              }
+
+              const shortId = generateShortId();
+              const shortUrl = `${window.location.origin}/${shortId}`;
+
+              try {
+                await addDoc(collection(db, 'urls'), {
+                  id: shortId,
+                  longUrl: longUrl,
+                  createdAt: new Date()
+                });
+                resultDiv.innerHTML = `
+                  <p>URL acortada:</p>
+                  <input type="text" value="${shortUrl}" readonly onclick="this.select()" />
+                  <button onclick="navigator.clipboard.writeText('${shortUrl}').then(() => alert('Copiado!'))">Copiar</button>
+                `;
+              } catch (error) {
+                console.error("Error al guardar:", error);
+                resultDiv.innerHTML = '<p class="error">Error técnico. Revisa consola.</p>';
+              }
+            });
+
+            // Redirección automática
+            const path = window.location.pathname.substring(1);
+            if (path.length === 6) {
+              (async () => {
+                const docRef = doc(db, 'urls', path);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                  window.location.href = docSnap.data().longUrl;
+                }
+              })();
             }
           });
-
-          const path = window.location.pathname.substring(1);
-          if (path && path.length <= 6) {
-            (async () => {
-              const docRef = doc(db, 'urls', path);
-              const docSnap = await getDoc(docRef);
-              if (docSnap.exists()) {
-                window.location.href = docSnap.data().longUrl;
-              }
-            })();
-          }
-        });
+      })
+      .catch(err => {
+        console.error("Error al cargar Firebase:", err);
+        document.getElementById('result').innerHTML = '<p class="error">Error de conexión. Revisa consola.</p>';
       });
-    }
   </script>
 </body>
 </html>
