@@ -17,7 +17,7 @@ const db = admin.firestore();
 app.post('/api/shorten', async (req, res) => {
     const { longUrl } = req.body;
     if (!longUrl || !longUrl.startsWith('http')) {
-        return res.status(400).json({ error: 'URL inválida.' });
+        return res.status(500).json({ error: 'URL inválida.' });
     }
     
     try {
