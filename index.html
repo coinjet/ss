@@ -14,7 +14,43 @@
     <p>Este es un servicio personal y privado. Si estás interesado en obtener tu propio acortador, no dudes en contactarnos.</p>
     <a href="mailto:infoacortame@gmail.com" class="btn">Pide informes aquí</a>
   </div>
+
+  <!-- Script de redirección automática -->
   <script>
+    // Solo intentar redirigir si hay una ruta corta
+    const firebaseConfig = {
+  apiKey: "AIzaSyDOzxVtpvKDdQ9j3eMM9xy2Yl4zgwYewEA",
+  authDomain: "acortador-personal-mio.firebaseapp.com",
+  projectId: "acortador-personal-mio",
+  storageBucket: "acortador-personal-mio.firebasestorage.app",
+  messagingSenderId: "832752841766",
+  appId: "1:832752841766:web:c245e2c0df90e01e5ee2e7"
+};
+
+
+      // Cargar Firebase
+      import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js')
+        .then(({ initializeApp }) => {
+          const app = initializeApp(firebaseConfig);
+          return import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js')
+            .then(({ getFirestore, doc, getDoc }) => {
+              const db = getFirestore(app);
+
+              (async () => {
+                const docRef = doc(db, 'urls', path);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                  window.location.replace(docSnap.data().longUrl);
+                }
+              })();
+            });
+        })
+        .catch(err => {
+          console.error("Error al redirigir:", err);
+        });
+    }
+
+    // Registrar Service Worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js');
     }
