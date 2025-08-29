@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acortador de URL</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Acorta tus URLs al instante</h1>
+        <form id="url-form">
+            <input type="url" id="long-url" placeholder="Pega tu URL larga aquí" required>
+            <button type="submit">Acortar</button>
+        </form>
+        <div id="result" class="hidden">
+            <p>Tu URL corta es:</p>
+            <a id="short-url" href="#" target="_blank"></a>
+            <button id="copy-btn">Copiar</button>
+        </div>
+        <div id="error-message" class="hidden">
+            <p>Por favor, ingresa una URL válida.</p>
+        </div>
+    </div>
+    <script>
+        const urlForm = document.getElementById('url-form');
+        const longUrlInput = document.getElementById('long-url');
+        const resultDiv = document.getElementById('result');
+        const shortUrlLink = document.getElementById('short-url');
+        const copyBtn = document.getElementById('copy-btn');
+        const errorMessageDiv = document.getElementById('error-message');
+
+        urlForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const longUrl = longUrlInput.value;
+
+            try {
+                const response = await fetch('/api/shorten', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ longUrl }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    shortUrlLink.href = data.shortUrl;
+                    shortUrlLink.textContent = data.shortUrl;
+                    resultDiv.classList.remove('hidden');
+                    errorMessageDiv.classList.add('hidden');
+                } else {
+                    errorMessageDiv.textContent = data.error || 'Algo salió mal. Inténtalo de nuevo.';
+                    errorMessageDiv.classList.remove('hidden');
+                    resultDiv.classList.add('hidden');
+                }
+            } catch (error) {
+                errorMessageDiv.textContent = 'Ocurrió un error. Verifica tu conexión.';
+                errorMessageDiv.classList.remove('hidden');
+                resultDiv.classList.add('hidden');
+            }
+        });
+
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(shortUrlLink.href).then(() => {
+                copyBtn.textContent = '¡Copiado!';
+                setTimeout(() => { copyBtn.textContent = 'Copiar'; }, 2000);
+            }).catch(err => {
+                console.error('Error al copiar el texto:', err);
+                alert('No se pudo copiar el texto. Inténtalo manualmente.');
+            });
+        });
+    </script>
+</body>
+
+</html>
+
