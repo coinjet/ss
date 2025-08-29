@@ -1,0 +1,13 @@
+{
+  "name": "url-shortener",
+  "version": "1.0.0",
+  "main": "functions/index.js",
+  "scripts": {
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "firebase-admin": "^12.4.0",
+    "nanoid": "^5.0.7"
+  }
+}
