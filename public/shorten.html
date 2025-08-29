@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acortador de URL</title>
+    <title>Acortador de URL Privado</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -19,7 +19,7 @@
             <button id="copy-btn">Copiar</button>
         </div>
         <div id="error-message" class="hidden">
-            <p>Por favor, ingresa una URL válida.</p>
+            <p>Ocurrió un error. Verifica tu conexión.</p>
         </div>
     </div>
     <script>
@@ -35,6 +35,7 @@
             const longUrl = longUrlInput.value;
 
             try {
+                // **Esta es la corrección clave:** la petición debe ir a /api/shorten
                 const response = await fetch('/api/shorten', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -71,6 +72,4 @@
         });
     </script>
 </body>
-
 </html>
-
