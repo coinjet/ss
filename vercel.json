@@ -9,11 +9,15 @@
   "routes": [
     {
       "src": "/api/shorten",
-      "dest": "functions/index.js"
+      "dest": "/functions/index.js"
     },
     {
       "src": "/go/(.*)",
-      "dest": "functions/index.js"
+      "dest": "/functions/index.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
     }
   ]
 }
