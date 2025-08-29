@@ -35,7 +35,7 @@
             const longUrl = longUrlInput.value;
 
             try {
-                const response = await fetch('/shorten', {
+                const response = await fetch('/api/shorten', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ longUrl }),
@@ -73,3 +73,4 @@
 </body>
 
 </html>
+
