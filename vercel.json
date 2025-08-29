@@ -1,12 +1,12 @@
 {
   "rewrites": [
     {
-      "source": "/api/shorten",
-      "destination": "/functions/index.js"
+      "source": "/shorten",
+      "destination": "/functions"
     },
     {
       "source": "/go/(.*)",
-      "destination": "/functions/index.js"
+      "destination": "/functions"
     }
   ]
 }
