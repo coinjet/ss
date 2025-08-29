@@ -1,12 +1,8 @@
 {
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/functions/index.js"
-    },
-    {
-      "source": "/go/(.*)",
-      "destination": "/functions/index.js"
+      "source": "/(.*)",
+      "destination": "/index.js"
     }
   ]
 }
