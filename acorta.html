@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Acortar URL - Panel</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+</head>
+<body>
+  <div class="container">
+    <h1>Acortador de URL</h1>
+    <p>Pega tu URL larga y obtén un enlace corto.</p>
+    <input type="text" id="longUrl" placeholder="https://ejemplo.com/ruta/larga/..." />
+    <button id="shortenBtn">Acortar URL</button>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    fetch('/api/config')
+      .then(r => r.json())
+      .then(config => {
+        window.firebaseConfig = config.firebase;
+        executeApp();
+      })
+      .catch(err => {
+        console.error("No se pudo cargar la configuración", err);
+      });
+
+    function executeApp() {
+      import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js').then(({ initializeApp }) => {
+        import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js').then(({ getFirestore, collection, addDoc, doc, getDoc }) => {
+          const app = initializeApp(window.firebaseConfig);
+          const db = getFirestore(app);
+
+          function generateShortId() {
+            return Math.random().toString(36).substring(2, 8);
+          }
+
+          document.getElementById('shortenBtn').addEventListener('click', async () => {
+            const longUrl = document.getElementById('longUrl').value.trim();
+            const resultDiv = document.getElementById('result');
+
+            if (!longUrl) {
+              resultDiv.innerHTML = '<p class="error">Por favor ingresa una URL válida.</p>';
+              return;
+            }
+
+            try {
+              new URL(longUrl);
+            } catch (e) {
+              resultDiv.innerHTML = '<p class="error">URL inválida. Debe incluir http:// o https://</p>';
+              return;
+            }
+
+            const shortId = generateShortId();
+            const shortUrl = `${window.location.origin}/${shortId}`;
+
+            try {
+              await addDoc(collection(db, 'urls'), {
+                id: shortId,
+                longUrl: longUrl,
+                createdAt: new Date()
+              });
+              resultDiv.innerHTML = `
+                <p>URL acortada:</p>
+                <input type="text" value="${shortUrl}" readonly onclick="this.select()" />
+                <button onclick="navigator.clipboard.writeText('${shortUrl}').then(() => alert('Copiado!'))">Copiar</button>
+              `;
+            } catch (error) {
+              console.error("Error:", error);
+              resultDiv.innerHTML = '<p class="error">Error al acortar. Revisa consola.</p>';
+            }
+          });
+
+          const path = window.location.pathname.substring(1);
+          if (path && path.length <= 6) {
+            (async () => {
+              const docRef = doc(db, 'urls', path);
+              const docSnap = await getDoc(docRef);
+              if (docSnap.exists()) {
+                window.location.href = docSnap.data().longUrl;
+              }
+            })();
+          }
+        });
+      });
+    }
+  </script>
+</body>
+</html>
