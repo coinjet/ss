@@ -15,9 +15,8 @@
     <a href="mailto:infoacortame@gmail.com" class="btn">Pide informes aquí</a>
   </div>
 
-  <!-- Script de redirección automática -->
   <script>
-    // === Configuración de Firebase (correcta y segura) ===
+    // === Configuración de Firebase (igual que en acorta.html) ===
     const firebaseConfig = {
       apiKey: "AIzaSyDOzxVtpvKDdQ9j3eMM9xy2Yl4zgwYewEA",
       authDomain: "acortador-personal-mio.firebaseapp.com",
@@ -27,45 +26,42 @@
       appId: "1:832752841766:web:c245e2c0df90e01e5ee2e7"
     };
 
-    // === Detectar si hay un ID corto en la URL ===
-    const path = window.location.pathname.substring(1); // Ej: /abc123 → "abc123"
-
-    // Solo intentar redirigir si la ruta tiene 6 caracteres
+    // === Detectar ID en la URL ===
+    const path = window.location.pathname.substring(1);
     if (path && path.length === 6) {
-      console.log("Redirigiendo: buscando destino para /" + path);
+      console.log("🔍 ID detectada en URL:", path);
 
       // Cargar Firebase App
       import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js')
-        .then(({ initializeApp }) => {
+        .then(async ({ initializeApp }) => {
           const app = initializeApp(firebaseConfig);
-          // Cargar Firestore
-          return import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js')
-            .then(({ getFirestore, doc, getDoc }) => {
-              const db = getFirestore(app);
-              const docRef = doc(db, 'urls', path);
+          console.log("✅ Firebase App inicializada");
 
-              getDoc(docRef).then((docSnap) => {
-                if (docSnap.exists()) {
-                  const longUrl = docSnap.data().longUrl;
-                  console.log("Redirigiendo a:", longUrl);
-                  window.location.replace(longUrl); // Redirige sin guardar en historial
-                } else {
-                  console.log("❌ No se encontró ninguna URL acortada con ID:", path);
-                }
-              }).catch((error) => {
-                console.error("❌ Error al leer Firestore:", error);
-              });
-            });
+          // Cargar Firestore
+          const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+          const db = getFirestore(app);
+          const docRef = doc(db, 'urls', path);
+
+          console.log("🔍 Buscando documento en Firestore...");
+          const docSnap = await getDoc(docRef);
+
+          if (docSnap.exists()) {
+            const longUrl = docSnap.data().longUrl;
+            console.log("🚀 Redirigiendo a:", longUrl);
+            window.location.replace(longUrl); // Redirige sin guardar en historial
+          } else {
+            console.log("❌ No se encontró el documento con ID:", path);
+          }
         })
-        .catch((err) => {
-          console.error("❌ Error al cargar Firebase:", err);
+        .catch(err => {
+          console.error("❌ Error crítico:", err);
         });
     }
 
-    // Registrar Service Worker para PWA
+    // Registrar Service Worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js')
-        .then(reg => console.log('Service Worker registrado:', reg.scope))
+        .then(reg => console.log('SW registrado:', reg.scope))
         .catch(err => console.error('SW no registrado:', err));
     }
   </script>
