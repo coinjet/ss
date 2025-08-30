@@ -16,53 +16,59 @@
   </div>
 
   <script>
-    // === Configuración de Firebase (igual que en acorta.html) ===
-    const firebaseConfig = {
-      apiKey: "AIzaSyDOzxVtpvKDdQ9j3eMM9xy2Yl4zgwYewEA",
-      authDomain: "acortador-personal-mio.firebaseapp.com",
-      projectId: "acortador-personal-mio",
-      storageBucket: "acortador-personal-mio.firebasestorage.app",
-      messagingSenderId: "832752841766",
-      appId: "1:832752841766:web:c245e2c0df90e01e5ee2e7"
-    };
-
-    // === Detectar ID en la URL ===
+    // Detectar ID en la URL
     const path = window.location.pathname.substring(1);
     if (path && path.length === 6) {
-      console.log("🔍 ID detectada en URL:", path);
+      console.log("🔍 Buscando URL acortada:", path);
+
+      // Configuración de Firebase
+      const firebaseConfig = {
+        apiKey: "AIzaSyDOzxVtpvKDdQ9j3eMM9xy2Yl4zgwYewEA",
+        authDomain: "acortador-personal-mio.firebaseapp.com",
+        projectId: "acortador-personal-mio",
+        storageBucket: "acortador-personal-mio.firebasestorage.app",
+        messagingSenderId: "832752841766",
+        appId: "1:832752841766:web:c245e2c0df90e01e5ee2e7"
+      };
 
       // Cargar Firebase App
       import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js')
         .then(async ({ initializeApp }) => {
           const app = initializeApp(firebaseConfig);
-          console.log("✅ Firebase App inicializada");
+          console.log("✅ Firebase inicializada");
 
           // Cargar Firestore
           const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
           const db = getFirestore(app);
           const docRef = doc(db, 'urls', path);
 
-          console.log("🔍 Buscando documento en Firestore...");
-          const docSnap = await getDoc(docRef);
+          try {
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              const longUrl = data.longUrl;
 
-          if (docSnap.exists()) {
-            const longUrl = docSnap.data().longUrl;
-            console.log("🚀 Redirigiendo a:", longUrl);
-            window.location.replace(longUrl); // Redirige sin guardar en historial
-          } else {
-            console.log("❌ No se encontró el documento con ID:", path);
+              if (longUrl && typeof longUrl === 'string') {
+                console.log("🚀 Redirigiendo a:", longUrl);
+                window.location.replace(longUrl);
+              } else {
+                console.error("❌ longUrl no es válida:", data);
+              }
+            } else {
+              console.log("❌ Documento no encontrado en Firestore:", path);
+            }
+          } catch (error) {
+            console.error("❌ Error al leer Firestore:", error);
           }
         })
         .catch(err => {
-          console.error("❌ Error crítico:", err);
+          console.error("❌ Error al cargar Firebase:", err);
         });
     }
 
     // Registrar Service Worker
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js')
-        .then(reg => console.log('SW registrado:', reg.scope))
-        .catch(err => console.error('SW no registrado:', err));
+      navigator.serviceWorker.register('/sw.js');
     }
   </script>
 </body>
